@@ -1,0 +1,76 @@
+- name: de-provisioning storage for Ansible-Host on PowerMax Deleting All Volumes
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - vars_files/connection.yml
+    - vars_files/credentials.yml
+    - vars_files/host_storage_details.yml
+
+  collections:
+      - dellemc.powermax
+
+  vars:
+    mv_name: "{{ mv_name }}"
+    portgroup_name: "{{ portgroup_name }}"
+    hostgroup_name: "{{ hostgroup_name }}"
+    sg_name: "{{ sg_name }}"
+
+    input: &uni_connection_vars
+      serial_no: "{{ serial_no }}"
+      password: "{{ password }}"
+      unispherehost: "{{ unispherehost }}"
+      universion: "{{ universion }}"
+      user: "{{  user  }}"
+      verifycert: "{{ verifycert }}"
+
+  tasks:
+    - name: Delete MV "{{ mv_name }}" 
+      dellemc.powermax.dellemc_powermax_maskingview:
+        <<: *uni_connection_vars
+        mv_name: "{{ mv_name }}"
+        portgroup_name: "{{ portgroup_name }}"
+        sg_name: "{{ sg_name }}"
+        state: 'absent'
+
+    - name: Get Storage Group Details
+      register: storage_details
+      dellemc.powermax.dellemc_powermax_storagegroup:
+        <<: *uni_connection_vars
+        sg_name: "{{ sg_name }}"
+        service_level: "Diamond"
+        state: 'present'
+
+    - set_fact:
+        all_volumes: "{{ storage_details.storage_group_volumes_details |list}}"
+
+    - name: Delete Storage group
+      dellemc.powermax.dellemc_powermax_storagegroup:
+        <<: *uni_connection_vars
+        sg_name: "{{ sg_name }}"
+        service_level: "Diamond"
+        srp: "SRP_1"
+        state: 'absent'
+
+    - name: Delete all the volumes
+      dellemc.powermax.dellemc_powermax_volume:
+        <<: *uni_connection_vars
+        vol_id: "{{item.volumeId}}"
+        state: 'absent'
+      loop: "{{ all_volumes }}"
+        
+    - name: Delete host "{{ host_name }}"
+      dellemc.powermax.dellemc_powermax_host:
+        <<: *uni_connection_vars
+        host_name: "{{ host_name }}"
+        initiators: "{{ host_initiators }}"
+        state: 'absent'
+        initiator_state: 'present-in-host'
+    
+    - name: Delete port group "{{ portgroup_name }}"
+      dellemc.powermax.dellemc_powermax_portgroup:
+        <<: *uni_connection_vars
+        portgroup_name: "{{ portgroup_name }}"
+        state: 'absent'
+
+

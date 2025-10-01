@@ -318,7 +318,6 @@ class MaskingView(object):
         except Exception as e:
             self.show_error_exit(msg='Create masking view %s failed; error '
                                      '%s' % (mv_name, str(e)))
-        return False, None
 
         try:
             resp = {}

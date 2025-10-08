@@ -319,9 +319,6 @@ class MaskingView(object):
             self.show_error_exit(msg='Create masking view %s failed; error '
                                      '%s' % (mv_name, str(e)))
 
-        try:
-            resp = {}
-            LOG.info('Creating masking view %s... ', mv_name)
             if not self.module.check_mode:
                 resp = self.provisioning.create_masking_view_existing_components(
                     port_group_name=pg_name, masking_view_name=mv_name,

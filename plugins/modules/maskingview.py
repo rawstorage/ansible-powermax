@@ -318,16 +318,6 @@ class MaskingView(object):
         except Exception as e:
             self.show_error_exit(msg='Create masking view %s failed; error '
                                      '%s' % (mv_name, str(e)))
-
-            if not self.module.check_mode:
-                resp = self.provisioning.create_masking_view_existing_components(
-                    port_group_name=pg_name, masking_view_name=mv_name,
-                    storage_group_name=sg_name, host_name=host_name,
-                    host_group_name=hostgroup_name, starting_lun_address=starting_lun_address)
-            return True, resp
-        except Exception as e:
-            self.show_error_exit(msg='Create masking view %s failed; error '
-                                     '%s' % (mv_name, str(e)))
         return False, None
 
     def delete_masking_view(self, mv_name):
